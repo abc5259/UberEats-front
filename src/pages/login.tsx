@@ -1,7 +1,10 @@
 import { useMutation } from "@apollo/client";
 import gql from "graphql-tag";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { Button } from "../components/button";
 import { FormError } from "../components/form-error";
+import nuberLogo from "../images/logo.svg";
 import {
   loginMutation,
   loginMutationVariables,
@@ -25,9 +28,11 @@ type Inputs = {
 export const Login = () => {
   const {
     register,
-    formState: { errors },
+    formState: { errors, isValid },
     handleSubmit,
-  } = useForm<Inputs>();
+  } = useForm<Inputs>({
+    mode: "onChange",
+  });
   const onCompleted = (data: loginMutation) => {
     const {
       login: { ok, token },
@@ -55,10 +60,16 @@ export const Login = () => {
     }
   };
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-800">
-      <div className="bg-white w-full max-w-lg pt-10 pb-7 rounded-lg text-center">
-        <h3 className="text-2xl text-gray-800">Log In</h3>
-        <form onSubmit={handleSubmit(onValid)} className="grid gap-3 mt-5 px-5">
+    <div className="h-screen flex items-center flex-col mt-10 lg:mt-28">
+      <div className="w-full max-w-screen-sm flex flex-col px-5 items-center">
+        <img src={nuberLogo} className="w-52 mb-10" />
+        <h4 className="w-full font-medium text-left text-3xl mb-5">
+          Welcome back
+        </h4>
+        <form
+          onSubmit={handleSubmit(onValid)}
+          className="grid gap-3 mt-5 w-full mb-3"
+        >
           <input
             {...register("email", {
               required: "이메일을 적어주세요",
@@ -73,10 +84,6 @@ export const Login = () => {
           <input
             {...register("password", {
               required: "password를 적어주세요",
-              // minLength: {
-              //   value: 10,
-              //   message: "최소한 10글자 이상이어야합니다",
-              // },
             })}
             type="password"
             placeholder="Password"
@@ -85,13 +92,17 @@ export const Login = () => {
           {errors.password?.message && (
             <FormError errorMessage={errors.password?.message} />
           )}
-          <button className="button">
-            {loading ? "loading..." : "Log In"}
-          </button>
+          <Button canClick={isValid} loading={loading} actionText={"Log In"} />
           {loginMutationResult?.login.error && (
             <FormError errorMessage={loginMutationResult.login.error} />
           )}
         </form>
+        <div>
+          New to Uber?{" "}
+          <Link to="/create-account" className="text-lime-600 hover:underline">
+            Create an Account
+          </Link>
+        </div>
       </div>
     </div>
   );
