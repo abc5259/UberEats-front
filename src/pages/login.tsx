@@ -5,10 +5,12 @@ import { Link } from "react-router-dom";
 import { Button } from "../components/button";
 import { FormError } from "../components/form-error";
 import nuberLogo from "../images/logo.svg";
+import Helmet from "react-helmet";
 import {
   loginMutation,
   loginMutationVariables,
 } from "../__generated__/loginMutation";
+import { isLoggedInVar } from "../apollo";
 
 const LOGIN_MUTATION = gql`
   mutation loginMutation($LoginInput: LoginInput!) {
@@ -39,6 +41,7 @@ export const Login = () => {
     } = data;
     if (ok) {
       console.log(token);
+      isLoggedInVar(true);
     }
   };
   const [loginMutation, { data: loginMutationResult, loading }] = useMutation<
@@ -61,6 +64,9 @@ export const Login = () => {
   };
   return (
     <div className="h-screen flex items-center flex-col mt-10 lg:mt-28">
+      <Helmet>
+        <title>LogIn| UberEats</title>
+      </Helmet>
       <div className="w-full max-w-screen-sm flex flex-col px-5 items-center">
         <img src={nuberLogo} className="w-52 mb-10" />
         <h4 className="w-full font-medium text-left text-3xl mb-5">
@@ -73,6 +79,11 @@ export const Login = () => {
           <input
             {...register("email", {
               required: "이메일을 적어주세요",
+              pattern: {
+                value:
+                  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                message: "이메일 형식이어야 합니다.",
+              },
             })}
             type="email"
             placeholder="Email"
