@@ -1,4 +1,21 @@
+import { useMutation } from "@apollo/client";
+import gql from "graphql-tag";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { FormError } from "../components/form-error";
+import {
+  loginMutation,
+  loginMutationVariables,
+} from "../__generated__/loginMutation";
+
+const LOGIN_MUTATION = gql`
+  mutation loginMutation($LoginInput: LoginInput!) {
+    login(input: $LoginInput) {
+      ok
+      token
+      error
+    }
+  }
+`;
 
 type Inputs = {
   email: string;
@@ -11,9 +28,31 @@ export const Login = () => {
     formState: { errors },
     handleSubmit,
   } = useForm<Inputs>();
-
-  const onValid: SubmitHandler<Inputs> = data => {
-    console.log(data);
+  const onCompleted = (data: loginMutation) => {
+    const {
+      login: { ok, token },
+    } = data;
+    if (ok) {
+      console.log(token);
+    }
+  };
+  const [loginMutation, { data: loginMutationResult, loading }] = useMutation<
+    loginMutation,
+    loginMutationVariables
+  >(LOGIN_MUTATION, {
+    onCompleted,
+  });
+  const onValid: SubmitHandler<Inputs> = ({ email, password }) => {
+    if (!loading) {
+      loginMutation({
+        variables: {
+          LoginInput: {
+            email,
+            password,
+          },
+        },
+      });
+    }
   };
   return (
     <div className="h-screen flex items-center justify-center bg-gray-800">
@@ -29,28 +68,29 @@ export const Login = () => {
             className="input"
           />
           {errors.email?.message && (
-            <span className="font-medium text-red-500">
-              {errors.email?.message}
-            </span>
+            <FormError errorMessage={errors.email?.message} />
           )}
           <input
             {...register("password", {
               required: "password를 적어주세요",
-              minLength: {
-                value: 10,
-                message: "최소한 10글자 이상이어야합니다",
-              },
+              // minLength: {
+              //   value: 10,
+              //   message: "최소한 10글자 이상이어야합니다",
+              // },
             })}
             type="password"
             placeholder="Password"
             className="input"
           />
           {errors.password?.message && (
-            <span className="font-medium text-red-500">
-              {errors.password?.message}
-            </span>
+            <FormError errorMessage={errors.password?.message} />
           )}
-          <button className="button">Log In</button>
+          <button className="button">
+            {loading ? "loading..." : "Log In"}
+          </button>
+          {loginMutationResult?.login.error && (
+            <FormError errorMessage={loginMutationResult.login.error} />
+          )}
         </form>
       </div>
     </div>
